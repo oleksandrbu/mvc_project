@@ -1,0 +1,1 @@
+Host=localhost;Username=mvc_admin;Password=12345;Database=mvc_data
