@@ -10,9 +10,9 @@ namespace mvc_project{
             string[] initString = File.ReadAllLines("conf/db_user.txt");
             connection = new NpgsqlConnection(initString[0]);
             connection.Open();
-            /*using (var cmd = new NpgsqlCommand("DROP TABLE tasklists", connection))
-                cmd.ExecuteNonQuery();
-            using (var cmd = new NpgsqlCommand("CREATE TABLE tasks(id SERIAL NOT NULL PRIMARY KEY, name TEXT, complited BOOLEAN, groupid INTEGER);", connection))
+            /*using (var cmd = new NpgsqlCommand("DROP TABLE tasks", connection))
+                cmd.ExecuteNonQuery();*/
+            /*using (var cmd = new NpgsqlCommand("CREATE TABLE tasks(id SERIAL NOT NULL PRIMARY KEY, name TEXT, complited BOOLEAN, groupid INTEGER);", connection))
                 cmd.ExecuteNonQuery();*/
         }
         public List<Task> GetAll(){

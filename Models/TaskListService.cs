@@ -10,10 +10,10 @@ namespace mvc_project{
             string[] initString = File.ReadAllLines("conf/db_user.txt");
             connection = new NpgsqlConnection(initString[0]);
             connection.Open();
-            using (var cmd = new NpgsqlCommand("DROP TABLE tasklists", connection))
+            /*using (var cmd = new NpgsqlCommand("DROP TABLE tasklists", connection))
                 cmd.ExecuteNonQuery();
-            using (var cmd = new NpgsqlCommand("CREATE TABLE tasklists(id SERIAL NOT NULL PRIMARY KEY, name TEXT);", connection))
-                cmd.ExecuteNonQuery();
+            using (var cmd = new NpgsqlCommand("CREATE TABLE tasklists(id SERIAL PRIMARY KEY, name TEXT);", connection))
+                cmd.ExecuteNonQuery();*/
         }
         public List<TaskList> GetAll(){
             List<TaskList> listTasks = new List<TaskList>();
@@ -26,14 +26,15 @@ namespace mvc_project{
             return listTasks;
         }
 
-        public List<TaskList> GetById(int id){
-            List<TaskList> listTasks = new List<TaskList>();
+        public List<Task> GetById(int id){
+            List<Task> listTasks = new List<Task>();
 
             using (var cmd = new NpgsqlCommand($"SELECT * FROM tasks WHERE groupid=(@groupid);", connection)){
                 cmd.Parameters.AddWithValue("groupid", id);
-                using (var reader =  cmd.ExecuteReader())
+                using (var reader =  cmd.ExecuteReader()){
                     while (reader.Read())
-                        listTasks.Add(new TaskList(reader.GetInt32(0), reader.GetString(1)));
+                        listTasks.Add(new Task(reader.GetInt32(0), reader.GetString(1), reader.GetBoolean(2), reader.GetInt32(3)));
+                }
             }
 
             return listTasks;
@@ -57,13 +58,13 @@ namespace mvc_project{
             return taskList;
         }
         public TaskList Patch(TaskList taskList){
-            Task oldTask = new Task();
+            TaskList oldTask = new TaskList();
 
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM tasks WHERE id=(@id);", connection)){
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM tasklists WHERE id=(@id);", connection)){
                 cmd.Parameters.AddWithValue("id", taskList.Id);
                 using (var reader =  cmd.ExecuteReader()){
                     reader.Read();
-                    oldTask = new Task(reader.GetInt32(0), reader.GetString(1), reader.GetBoolean(2), reader.GetInt32(3));
+                    oldTask = new TaskList(reader.GetInt32(0), reader.GetString(1));
                 }
             }
 
