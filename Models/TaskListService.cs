@@ -1,24 +1,16 @@
 using System.Collections.Generic;
 using System.IO;
 using Npgsql;
-using System;
 
 namespace mvc_project{
     public class TaskListService{
-        private NpgsqlConnection connection;
         public TaskListService(){
-            string[] initString = File.ReadAllLines("conf/db_user.txt");
-            connection = new NpgsqlConnection(initString[0]);
-            connection.Open();
-            /*using (var cmd = new NpgsqlCommand("DROP TABLE tasklists", connection))
-                cmd.ExecuteNonQuery();
-            using (var cmd = new NpgsqlCommand("CREATE TABLE tasklists(id SERIAL PRIMARY KEY, name TEXT);", connection))
-                cmd.ExecuteNonQuery();*/
+            
         }
         public List<TaskList> GetAll(){
             List<TaskList> listTasks = new List<TaskList>();
 
-            using (var cmd = new NpgsqlCommand("SELECT * FROM tasklists", connection))
+            using (var cmd = new NpgsqlCommand("SELECT * FROM tasklists", DataBase.Connection()))
             using (var reader =  cmd.ExecuteReader())
                 while (reader.Read())
                     listTasks.Add(new TaskList(reader.GetInt32(0), reader.GetString(1)));
@@ -26,29 +18,34 @@ namespace mvc_project{
             return listTasks;
         }
 
-        public List<Task> GetById(int id){
-            List<Task> listTasks = new List<Task>();
+        public TaskList GetById(int id){
+            TaskList taskList;
 
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM tasks WHERE groupid=(@groupid);", connection)){
-                cmd.Parameters.AddWithValue("groupid", id);
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM tasklists WHERE id=(@id);", DataBase.Connection())){
+                cmd.Parameters.AddWithValue("id", id);
                 using (var reader =  cmd.ExecuteReader()){
-                    while (reader.Read())
-                        listTasks.Add(new Task(reader.GetInt32(0), reader.GetString(1), reader.GetBoolean(2), reader.GetInt32(3)));
+                    reader.Read();
+                    taskList = new TaskList(reader.GetInt32(0), reader.GetString(1));
                 }
             }
+
+            return taskList;
+        }
+        public List<Task> GetByIdList(int id){
+            List<Task> listTasks = TaskService.GetByIdList(id);
 
             return listTasks;
         }
 
         public void Add(TaskList taskList){
-            using (var cmd = new NpgsqlCommand("INSERT INTO tasklists (name) VALUES (@name);", connection)){
+            using (var cmd = new NpgsqlCommand("INSERT INTO tasklists (name) VALUES (@name);", DataBase.Connection())){
                 if (taskList.Name == "") taskList.Name = "Unknown";
                 cmd.Parameters.AddWithValue("name", taskList.Name);
                 cmd.ExecuteNonQuery();
             }
         }
         public TaskList Put(TaskList taskList){      
-            using (var cmd = new NpgsqlCommand("UPDATE tasklists SET name=(@name) WHERE id=(@id);", connection)){
+            using (var cmd = new NpgsqlCommand("UPDATE tasklists SET name=(@name) WHERE id=(@id);", DataBase.Connection())){
                 cmd.Parameters.AddWithValue("id", taskList.Id);
                 if (taskList.Name == "") taskList.Name = "Unknown";
                 cmd.Parameters.AddWithValue("name", taskList.Name);
@@ -60,7 +57,7 @@ namespace mvc_project{
         public TaskList Patch(TaskList taskList){
             TaskList oldTask = new TaskList();
 
-            using (var cmd = new NpgsqlCommand($"SELECT * FROM tasklists WHERE id=(@id);", connection)){
+            using (var cmd = new NpgsqlCommand($"SELECT * FROM tasklists WHERE id=(@id);", DataBase.Connection())){
                 cmd.Parameters.AddWithValue("id", taskList.Id);
                 using (var reader =  cmd.ExecuteReader()){
                     reader.Read();
@@ -68,7 +65,7 @@ namespace mvc_project{
                 }
             }
 
-            using (var cmd = new NpgsqlCommand("UPDATE tasklists SET name=(@name) WHERE id=(@id);", connection)){
+            using (var cmd = new NpgsqlCommand("UPDATE tasklists SET name=(@name) WHERE id=(@id);", DataBase.Connection())){
                 cmd.Parameters.AddWithValue("id", oldTask.Id);
                 if (taskList.Name == "") taskList.Name = oldTask.Name;
                 cmd.Parameters.AddWithValue("name", taskList.Name);
@@ -78,11 +75,11 @@ namespace mvc_project{
             return taskList;
         }
         public void Delete(int id){
-            using (var cmd = new NpgsqlCommand($"DELETE FROM tasklists WHERE id=(@id);", connection)){
+            using (var cmd = new NpgsqlCommand($"DELETE FROM tasklists WHERE id=(@id);", DataBase.Connection())){
                 cmd.Parameters.AddWithValue("id", id);
                 cmd.ExecuteNonQuery();
             }
-            using (var cmd = new NpgsqlCommand($"DELETE FROM tasks WHERE groupid=(@groupid);", connection)){
+            using (var cmd = new NpgsqlCommand($"DELETE FROM tasks WHERE groupid=(@groupid);", DataBase.Connection())){
                 cmd.Parameters.AddWithValue("groupid", id);
                 cmd.ExecuteNonQuery();
             }

@@ -20,6 +20,10 @@ namespace mvc_project{
         public IActionResult TaskById(int id){
             return new JsonResult(dbTasks.GetById(id));
         }
+        [HttpGet("{id}/list")]
+        public IActionResult TaskByIdList(int id){
+            return new JsonResult(dbTasks.GetByIdList(id));
+        }
 
         [HttpPost("")]
         public void AddTask(TaskList taskList){
